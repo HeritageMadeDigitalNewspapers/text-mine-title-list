@@ -189,7 +189,9 @@ tokenised_titles_dates %>%
 ![png](output_23_0.png)
 
 
-Advertiser is the most popular word in a title! Lots of other words which would be expected, like 'news', 'daily', 'evening' and so forth. It might be more interesting to compare across time. 
+Advertiser is the most popular word in a title! Lots of other words are at the top which might be expected, like 'news', 'daily', 'evening' and so forth. 
+
+It might be more interesting to look at the changes in the top words over time. 
 
 This adds a new column with the date 'floored' to the previous 20. When we group and count again, everything between 1800 and 1819 will become 1800, everything between 1820 and 1839 will become 1820 and so forth.
 
