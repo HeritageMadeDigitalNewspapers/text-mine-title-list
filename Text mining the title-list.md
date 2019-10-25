@@ -4,7 +4,7 @@
 
 ![title](titles.png)
 
-### Titles don't just help you identity a newspaper, but they might tell you a little bit about the time in which they were established. With a bibliographic list of _all_ our UK and Irish titles, we can count the most frequent words and track them over time AND PLACE, using text mining and data analysis.
+### Titles don't just help you identity a newspaper, but they might tell you a little bit about the time in which they were established. With a bibliographic list of _all_ our UK and Irish titles, we can count the most frequent words and track them over time and place, using text mining and data analysis.
 
 ### What is this document?
 
