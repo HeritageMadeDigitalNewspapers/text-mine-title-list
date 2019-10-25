@@ -437,18 +437,7 @@ tokenised_titles_countries = tokenised_titles_countries %>%
     Joining, by = "word"
     
 
-
-```R
 Let's make an overall chart for each country:
-```
-
-
-    Error in parse(text = x, srcfile = src): <text>:1:4: unexpected INCOMPLETE_STRING
-    1: Let's make an overall chart for each country:
-           ^
-    Traceback:
-    
-
 
 England:
 
