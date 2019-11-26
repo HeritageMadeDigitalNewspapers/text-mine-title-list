@@ -46,8 +46,8 @@ The first thing we do is load the whole title list as a variable called 'working
 
 ```R
 working_list <- read_excel(
-  "UK_Ireland_Newspapers_Title_Level_List.xlsx", 
-                           sheet = "Title-level list")
+BritishAndIrishNewspapersTitleList_20191118.csv, 
+local = locale(encoding = "latin1"))
 ```
 
 Let's just look at the nineteenth century - we'll use the filter() function from dplyr, which is one of the libraries in the tidyverse. We then use %>% to pipe the filtered data to a function called head(), which displays a set number of rows of your data frama - useful for taking a peek at the structure.
@@ -55,8 +55,8 @@ Let's just look at the nineteenth century - we'll use the filter() function from
 
 ```R
 working_list %>% 
-  filter(Last.date.held>1799) %>%
-  filter(First.date.held<1900) %>% 
+  filter(last_date_held>1799) %>%
+  filter(first_date_held<1900) %>% 
 head(2)
 ```
 
@@ -98,10 +98,10 @@ Select only the information we need. Let's create a new dataframe, run the filte
 
 ```R
 titles_dates = working_list %>% 
- filter(Last.date.held>1799) %>%
-  filter(First.date.held<1900) %>%
+ filter(last_date_held>1799) %>%
+  filter(first_date_held<1900) %>%
   distinct(NID, .keep_all = TRUE) %>%
-  select(`Publication title`, First.date.held)
+  select(publication_title, first_date_held)
 ```
 
 To count the title keywords, we can tokenise our data. This splits everything into individual words. For this we need to load a library called 'tidytext', which contains lots of functions for text mining. 
@@ -114,7 +114,7 @@ library(tidytext)
 
 ```R
 tokenised_titles_dates = titles_dates %>%
-  unnest_tokens(word, `Publication title`)
+  unnest_tokens(word, publication_title)
 ```
 
 Now we'll get rid of stopwords - the very frequently-used words like 'the' or 'an' and so forth. It's not always appropriate to remove stopwords, and in fact sometimes they are the most interesting, but I think here it will make things easier to manage. 
@@ -198,7 +198,7 @@ This adds a new column with the date 'floored' to the previous 20. When we group
 
 ```R
 tokenised_titles_dates = tokenised_titles_dates %>%
-  mutate(timespan = First.date.held - First.date.held %% 20)
+  mutate(timespan = first_date_held - first_date_held %% 20)
 ```
 
 Now look at the top ten title words for each of these twenty-year periods:
@@ -315,7 +315,7 @@ We know that the number of titles per year increases a lot over the century, so 
 
 ```R
 title_words = tokenised_titles_dates %>%
-  mutate(decade = First.date.held - First.date.held %% 10) %>% 
+  mutate(decade = first_date_held - first_date_held %% 10) %>% 
   count(decade, word, sort = TRUE)
 head(title_words, 5)
 ```
@@ -425,10 +425,10 @@ Go back to the working list and make a version with country information:
 
 ```R
 titles_countries = working_list %>% 
-  select(`Publication title`, Country.of.publication)
+  select(publication_title, country_of_publication)
 
 tokenised_titles_countries = titles_countries %>%
-  unnest_tokens(word, `Publication title`)
+  unnest_tokens(word, publication_title)
 
 tokenised_titles_countries = tokenised_titles_countries %>% 
   anti_join(stop_words)
@@ -444,7 +444,7 @@ England:
 
 ```R
 tokenised_titles_countries %>%
-  filter(Country.of.publication == 'England') %>% 
+  filter(country_of_publication == 'England') %>% 
   count(word, sort = TRUE) %>%
   ungroup() %>% 
   mutate(word = reorder(word, n)) %>%
@@ -461,7 +461,7 @@ Scotland:
 
 ```R
 tokenised_titles_countries %>%
-  filter(Country.of.publication == 'Scotland') %>% 
+  filter(country_of_publication == 'Scotland') %>% 
   count(word, sort = TRUE) %>%
   ungroup() %>% 
   filter(n > 40) %>%
@@ -479,7 +479,7 @@ Ireland:
 
 ```R
 tokenised_titles_countries %>%
-  filter(Country.of.publication %in% c('Ireland', 'Northern Ireland')) %>% 
+  filter(country_of_publication %in% c('Ireland', 'Northern Ireland')) %>% 
   count(word, sort = TRUE) %>%
   ungroup() %>% 
   mutate(word = reorder(word, n)) %>%
@@ -496,7 +496,7 @@ Wales:
 
 ```R
 tokenised_titles_countries %>%
-  filter(Country.of.publication == 'Wales') %>% 
+  filter(country_of_publication == 'Wales') %>% 
   count(word, sort = TRUE) %>%
   ungroup() %>% 
   mutate(word = reorder(word, n)) %>%
@@ -522,12 +522,12 @@ Next we'll use a function which gives the 'tf-idf' score for each word. This mea
 
 ```R
 total_by_country = tokenised_titles_countries %>%
-  filter(Country.of.publication %in% countryList) %>% 
-  count(Country.of.publication, word, sort = TRUE)
+  filter(country_of_publication %in% countryList) %>% 
+  count(country_of_publication, word, sort = TRUE)
   
 
 total_by_country <- total_by_country %>%
-  bind_tf_idf(word, Country.of.publication, n)
+  bind_tf_idf(word, country_of_publication, n)
 ```
 
 
@@ -535,13 +535,13 @@ total_by_country <- total_by_country %>%
 total_by_country %>%
   arrange(desc(tf_idf)) %>%
   mutate(word = factor(word, levels = rev(unique(word)))) %>% 
-  group_by(Country.of.publication) %>% 
+  group_by(country_of_publication) %>% 
   top_n(15) %>% 
   ungroup() %>%
-  ggplot(aes(word, tf_idf, fill = Country.of.publication)) +
+  ggplot(aes(word, tf_idf, fill = country_of_publication)) +
   geom_col(show.legend = FALSE) +
   labs(x = NULL, y = "tf-idf") +
-  facet_wrap(~Country.of.publication, ncol = 2, scales = "free") +
+  facet_wrap(~country_of_publication, ncol = 2, scales = "free") +
   coord_flip()
 ```
 
@@ -552,15 +552,15 @@ We need a way to try and filter out geographic places as they're drowning out ot
 
 ```R
 all_places = read_excel(
-  "UK_Ireland_Newspapers_Title_Level_List.xlsx", 
-  sheet = "Title-level list")
+BritishAndIrishNewspapersTitleList_20191118.csv, 
+local = locale(encoding = "latin1"))
 
-list_of_places = c(all_places$First.geographical.subject.heading, 
-                             all_places$Subsequent.geographical.subject.headings,
-                             all_places$General.area.of.coverage,
-                             all_places$Coverage..City,
-                             all_places$Place.of.publication,
-                             all_places$Country.of.publication)
+list_of_places = c(all_places$first_geographical_subject_heading, 
+                             all_places$subsequent_geographical_subject_headings,
+                             all_places$general_area_of_coverage,
+                             all_places$coverage_city,
+                             all_places$place_of_publication,
+                             all_places$country_of_publication)
 
 list_of_places = as.data.frame(list_of_places) %>% 
   group_by(list_of_places) %>% count() %>% select(list_of_places)
@@ -582,13 +582,13 @@ total_by_country %>%
   filter(!word %in% list_of_places) %>%
   arrange(desc(tf_idf)) %>%
   mutate(word = factor(word, levels = rev(unique(word)))) %>%
-  group_by(Country.of.publication) %>% 
+  group_by(country_of_publication) %>% 
   top_n(15) %>% 
   ungroup() %>%
-  ggplot(aes(word, tf_idf, fill = Country.of.publication)) +
+  ggplot(aes(word, tf_idf, fill = country_of_publication)) +
   geom_col(show.legend = FALSE) +
   labs(x = NULL, y = "tf-idf") +
-  facet_wrap(~Country.of.publication, ncol = 2, scales = "free") +
+  facet_wrap(~country_of_publication, ncol = 2, scales = "free") +
   coord_flip()
 ```
 
