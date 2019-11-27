@@ -45,7 +45,7 @@ The first thing we do is load the whole title list as a variable called 'working
 
 
 ```R
-working_list <- read_excel(
+working_list <- read_csv(
 BritishAndIrishNewspapersTitleList_20191118.csv, 
 local = locale(encoding = "latin1"))
 ```
